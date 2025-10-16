@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Toutes les Œuvres{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.filters-section {
+    background-color: var(--bg-secondary);
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filters-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.filter-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-color);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.results-header {
+    padding: 2rem 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.results-count {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+}
+
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-btn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    background-color: var(--bg-color);
+}
+
+.view-btn.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.view-btn:not(.active):hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.oeuvres-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 2rem 0;
+}
+
+.oeuvre-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+    position: relative;
+}
+
+.oeuvre-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+}
+
+.oeuvre-image {
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--bg-tertiary);
+}
+
+.oeuvre-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.oeuvre-card:hover .oeuvre-image img {
+    transform: scale(1.1);
+}
+
+.oeuvre-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.oeuvre-content {
+    padding: 1.25rem;
+}
+
+.oeuvre-category {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.oeuvre-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.oeuvre-artist {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.oeuvre-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.oeuvre-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.oeuvre-link {
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: var(--transition);
+}
+
+.oeuvre-link:hover {
+    gap: 0.5rem;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 3rem 0;
+}
+
+.pagination-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-color);
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(.disabled):not(.active) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.pagination-btn.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.no-results {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--text-secondary);
+}
+
+.no-results svg {
+    margin: 0 auto 1rem;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .oeuvres-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .filters-container {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Collection d'Œuvres</h1>
+        <p>Découvrez notre collection de {{ oeuvres.paginator.count }} œuvre{{ oeuvres.paginator.count|pluralize }}</p>
+    </div>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-section">
+    <div class="container">
+        <form method="get" class="filters-form">
+            <div class="filters-container">
+                <!-- Catégorie -->
+                <div class="filter-group">
+                    <label class="filter-label">Catégorie</label>
+                    <select name="categorie" class="filter-select" onchange="this.form.submit()">
+                        <option value="">Toutes les catégories</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.slug }}" {% if request.GET.categorie == cat.slug %}selected{% endif %}>
+                                {{ cat.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Artiste -->
+                <div class="filter-group">
+                    <label class="filter-label">Artiste</label>
+                    <select name="artiste" class="filter-select" onchange="this.form.submit()">
+                        <option value="">Tous les artistes</option>
+                        {% for artiste in artistes %}
+                            <option value="{{ artiste.slug }}" {% if request.GET.artiste == artiste.slug %}selected{% endif %}>
+                                {{ artiste.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Salle -->
+                <div class="filter-group">
+                    <label class="filter-label">Salle</label>
+                    <select name="salle" class="filter-select" onchange="this.form.submit()">
+                        <option value="">Toutes les salles</option>
+                        {% for salle in salles %}
+                            <option value="{{ salle.slug }}" {% if request.GET.salle == salle.slug %}selected{% endif %}>
+                                {{ salle.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Tri -->
+                <div class="filter-group">
+                    <label class="filter-label">Trier par</label>
+                    <select name="tri" class="filter-select" onchange="this.form.submit()">
+                        <option value="-date_creation" {% if tri_actuel == '-date_creation' %}selected{% endif %}>Plus récentes</option>
+                        <option value="date_creation" {% if tri_actuel == 'date_creation' %}selected{% endif %}>Plus anciennes</option>
+                        <option value="titre" {% if tri_actuel == 'titre' %}selected{% endif %}>Titre (A-Z)</option>
+                        <option value="-titre" {% if tri_actuel == '-titre' %}selected{% endif %}>Titre (Z-A)</option>
+                        <option value="-nombre_vues" {% if tri_actuel == '-nombre_vues' %}selected{% endif %}>Plus populaires</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="container">
+    <div class="results-header">
+        <p class="results-count">
+            <strong>{{ oeuvres.paginator.count }}</strong> œuvre{{ oeuvres.paginator.count|pluralize }} trouvée{{ oeuvres.paginator.count|pluralize }}
+        </p>
+    </div>
+
+    <!-- Oeuvres Grid -->
+    {% if oeuvres %}
+        <div class="oeuvres-grid">
+            {% for oeuvre in oeuvres %}
+                <article class="oeuvre-card">
+                    <div class="oeuvre-image">
+                        <a href="{% url 'core:detail_oeuvre' oeuvre.slug %}">
+                            <img src="{{ oeuvre.image_miniature.url }}" alt="{{ oeuvre.titre }}">
+                        </a>
+                        {% if oeuvre.modele_3d %}
+                            <span class="oeuvre-badge">
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                    <path d="M6 1L1 3.5V8.5L6 11L11 8.5V3.5L6 1Z" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                3D
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="oeuvre-content">
+                        <div class="oeuvre-category">{{ oeuvre.categorie.nom }}</div>
+                        <h3 class="oeuvre-title">
+                            <a href="{% url 'core:detail_oeuvre' oeuvre.slug %}">{{ oeuvre.titre }}</a>
+                        </h3>
+                        <p class="oeuvre-artist">
+                            {% if oeuvre.artiste %}
+                                {{ oeuvre.artiste.nom }}
+                            {% else %}
+                                Artiste inconnu
+                            {% endif %}
+                            {% if oeuvre.annee %} • {{ oeuvre.annee }}{% endif %}
+                        </p>
+                        <div class="oeuvre-footer">
+                            <span class="oeuvre-meta">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M1 8C1 8 3 3 8 3C13 3 15 8 15 8C15 8 13 13 8 13C3 13 1 8 1 8Z" stroke="currentColor" stroke-width="1.5"/>
+                                    <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                {{ oeuvre.nombre_vues }}
+                            </span>
+                            <a href="{% url 'core:detail_oeuvre' oeuvre.slug %}" class="oeuvre-link">
+                                Voir
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if oeuvres.has_other_pages %}
+            <div class="pagination">
+                {% if oeuvres.has_previous %}
+                    <a href="?page=1{% if request.GET.categorie %}&categorie={{ request.GET.categorie }}{% endif %}{% if request.GET.tri %}&tri={{ request.GET.tri }}{% endif %}" class="pagination-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M13 4L9 8L13 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                    <a href="?page={{ oeuvres.previous_page_number }}{% if request.GET.categorie %}&categorie={{ request.GET.categorie }}{% endif %}{% if request.GET.tri %}&tri={{ request.GET.tri }}{% endif %}" class="pagination-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                {% endif %}
+
+                <span class="pagination-btn active">{{ oeuvres.number }}</span>
+                <span class="pagination-btn disabled">sur {{ oeuvres.paginator.num_pages }}</span>
+
+                {% if oeuvres.has_next %}
+                    <a href="?page={{ oeuvres.next_page_number }}{% if request.GET.categorie %}&categorie={{ request.GET.categorie }}{% endif %}{% if request.GET.tri %}&tri={{ request.GET.tri }}{% endif %}" class="pagination-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                    <a href="?page={{ oeuvres.paginator.num_pages }}{% if request.GET.categorie %}&categorie={{ request.GET.categorie }}{% endif %}{% if request.GET.tri %}&tri={{ request.GET.tri }}{% endif %}" class="pagination-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M3 4L7 8L3 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="no-results">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="4"/>
+                <path d="M30 50L50 30M30 30L50 50" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            <h3>Aucune œuvre trouvée</h3>
+            <p>Essayez de modifier vos filtres de recherche</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

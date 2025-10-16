@@ -1,0 +1,743 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ oeuvre.titre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.oeuvre-detail {
+    padding: 3rem 0;
+}
+
+.oeuvre-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.oeuvre-image-container {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.oeuvre-main-image {
+    width: 100%;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    aspect-ratio: 3/4;
+    background-color: var(--bg-tertiary);
+}
+
+.oeuvre-main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.oeuvre-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+}
+
+.action-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.action-btn.is-favorite {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.oeuvre-info {
+    padding: 1rem 0;
+}
+
+.oeuvre-category-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.oeuvre-title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.oeuvre-artist-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+}
+
+.artist-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+}
+
+.artist-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.artist-details h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.artist-details p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.oeuvre-description {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.oeuvre-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.meta-item {
+    padding: 1.5rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+}
+
+.meta-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.meta-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.media-section {
+    margin-top: 2rem;
+    padding: 2rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+}
+
+.media-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.media-tab {
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: var(--transition);
+    position: relative;
+    cursor: pointer;
+}
+
+.media-tab.active {
+    color: var(--primary-color);
+}
+
+.media-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.model-3d-container {
+    width: 100%;
+    height: 500px;
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-color);
+}
+
+audio, video {
+    width: 100%;
+    border-radius: var(--radius-lg);
+}
+
+.comments-section {
+    margin-top: 3rem;
+    padding-top: 3rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.comment-form {
+    padding: 2rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+}
+
+.comment-item {
+    padding: 1.5rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.comment-author {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.comment-date {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.comment-content {
+    color: var(--text-secondary);
+}
+
+.similar-section {
+    padding: 3rem 0;
+    background-color: var(--bg-secondary);
+}
+
+@media (max-width: 768px) {
+    .oeuvre-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .oeuvre-image-container {
+        position: static;
+    }
+
+    .oeuvre-meta-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="oeuvre-detail" data-oeuvre-id="{{ oeuvre.id }}">
+    <div class="container">
+        <div class="oeuvre-grid">
+            <!-- Image principale -->
+            <div class="oeuvre-image-container">
+                <div class="oeuvre-main-image">
+                    {% if oeuvre.image_haute_resolution %}
+                        <img src="{{ oeuvre.image_haute_resolution.url }}" alt="{{ oeuvre.titre }}">
+                    {% else %}
+                        <img src="{{ oeuvre.image_miniature.url }}" alt="{{ oeuvre.titre }}">
+                    {% endif %}
+                </div>
+
+                <div class="oeuvre-actions">
+                    {% if user.is_authenticated %}
+                        <button class="action-btn btn-favorite {% if est_favori %}is-favorite{% endif %}" data-oeuvre-id="{{ oeuvre.id }}">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                {% if est_favori %}
+                                    <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" fill="currentColor"/>
+                                {% else %}
+                                    <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                {% endif %}
+                            </svg>
+                            {% if est_favori %}Dans les favoris{% else %}Ajouter aux favoris{% endif %}
+                        </button>
+                    {% else %}
+                        <a href="{% url 'comptes:connexion' %}?next={{ request.path }}" class="action-btn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Favoris
+                        </a>
+                    {% endif %}
+
+                    <button class="action-btn" onclick="navigator.share({title: '{{ oeuvre.titre }}', url: window.location.href})">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M15 13L10 8L5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M10 8V18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M3 10V4C3 3.44772 3.44772 3 4 3H16C16.5523 3 17 3.44772 17 4V10" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        Partager
+                    </button>
+                </div>
+            </div>
+
+            <!-- Informations -->
+            <div class="oeuvre-info">
+                <span class="oeuvre-category-badge">{{ oeuvre.categorie.nom }}</span>
+
+                <h1 class="oeuvre-title">{{ oeuvre.titre }}</h1>
+
+                <!-- Artiste -->
+                {% if oeuvre.artiste %}
+                <div class="oeuvre-artist-info">
+                    <div class="artist-avatar">
+                        {% if oeuvre.artiste.photo %}
+                            <img src="{{ oeuvre.artiste.photo.url }}" alt="{{ oeuvre.artiste.nom }}">
+                        {% else %}
+                            {{ oeuvre.artiste.nom.0|upper }}
+                        {% endif %}
+                    </div>
+                    <div class="artist-details">
+                        <h3>
+                            <a href="{% url 'core:detail_artiste' oeuvre.artiste.slug %}">{{ oeuvre.artiste.nom }}</a>
+                        </h3>
+                        <p>
+                            {% if oeuvre.artiste.nationalite %}{{ oeuvre.artiste.nationalite }}{% endif %}
+                            {% if oeuvre.artiste.annee_naissance %}
+                                ({{ oeuvre.artiste.annee_naissance }}{% if oeuvre.artiste.annee_deces %} - {{ oeuvre.artiste.annee_deces }}{% endif %})
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Description -->
+                <div class="oeuvre-description">
+                    {{ oeuvre.description|linebreaks }}
+                </div>
+
+                <!-- Métadonnées -->
+                <div class="oeuvre-meta-grid">
+                    {% if oeuvre.annee %}
+                    <div class="meta-item">
+                        <div class="meta-label">Année de création</div>
+                        <div class="meta-value">{{ oeuvre.annee }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if oeuvre.technique %}
+                    <div class="meta-item">
+                        <div class="meta-label">Technique</div>
+                        <div class="meta-value">{{ oeuvre.technique }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if oeuvre.dimensions %}
+                    <div class="meta-item">
+                        <div class="meta-label">Dimensions</div>
+                        <div class="meta-value">{{ oeuvre.dimensions }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if oeuvre.materiau %}
+                    <div class="meta-item">
+                        <div class="meta-label">Matériau</div>
+                        <div class="meta-value">{{ oeuvre.materiau }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if oeuvre.salle %}
+                    <div class="meta-item">
+                        <div class="meta-label">Salle</div>
+                        <div class="meta-value">
+                            <a href="{% url 'core:detail_salle' oeuvre.salle.slug %}">{{ oeuvre.salle.nom }}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="meta-item">
+                        <div class="meta-label">Vues</div>
+                        <div class="meta-value">{{ oeuvre.nombre_vues }}</div>
+                    </div>
+                </div>
+
+                <!-- Médias multiples -->
+                {% if oeuvre.modele_3d or oeuvre.audio_guide or oeuvre.video or oeuvre.lien_video_externe %}
+                <div class="media-section">
+                    <div class="media-tabs">
+                        {% if oeuvre.modele_3d %}
+                        <div class="media-tab active" data-tab="3d">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline; vertical-align: middle; margin-right: 0.5rem;">
+                                <path d="M10 2L2 6V14L10 18L18 14V6L10 2Z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Modèle 3D
+                        </div>
+                        {% endif %}
+
+                        {% if oeuvre.audio_guide %}
+                        <div class="media-tab" data-tab="audio">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline; vertical-align: middle; margin-right: 0.5rem;">
+                                <path d="M3 7V13M7 5V15M11 3V17M15 5V15M19 7V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            Guide Audio
+                        </div>
+                        {% endif %}
+
+                        {% if oeuvre.video or oeuvre.lien_video_externe %}
+                        <div class="media-tab" data-tab="video">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline; vertical-align: middle; margin-right: 0.5rem;">
+                                <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M8 7L13 10L8 13V7Z" fill="currentColor"/>
+                            </svg>
+                            Vidéo
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Contenu des onglets -->
+                    {% if oeuvre.modele_3d %}
+                    <div class="tab-content active" id="tab-3d">
+                        <div class="model-3d-container" id="model-viewer">
+                            <p style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                Chargement du modèle 3D...
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if oeuvre.audio_guide %}
+                    <div class="tab-content" id="tab-audio">
+                        <audio controls>
+                            <source src="{{ oeuvre.audio_guide.url }}" type="audio/mpeg">
+                            Votre navigateur ne supporte pas l'élément audio.
+                        </audio>
+                    </div>
+                    {% endif %}
+
+                    {% if oeuvre.video or oeuvre.lien_video_externe %}
+                    <div class="tab-content" id="tab-video">
+                        {% if oeuvre.lien_video_externe %}
+                            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius-lg);">
+                                <iframe
+                                    src="{{ oeuvre.lien_video_externe }}"
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        {% elif oeuvre.video %}
+                            <video controls>
+                                <source src="{{ oeuvre.video.url }}" type="video/mp4">
+                                Votre navigateur ne supporte pas l'élément vidéo.
+                            </video>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section Commentaires -->
+        <div class="comments-section">
+            <div class="comments-header">
+                <h2>Commentaires ({{ commentaires.count }})</h2>
+            </div>
+
+            <!-- Formulaire de commentaire -->
+            {% if user.is_authenticated %}
+            <div class="comment-form">
+                <h3 style="margin-bottom: 1rem;">Laissez votre avis</h3>
+                <form method="post" class="ajax-form" action="{% url 'core:ajouter_commentaire' oeuvre.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ form.contenu }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Publier le commentaire</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="comment-form">
+                <p>
+                    <a href="{% url 'comptes:connexion' %}?next={{ request.path }}">Connectez-vous</a> pour laisser un commentaire.
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Liste des commentaires -->
+            {% if commentaires %}
+                {% for commentaire in commentaires %}
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <div class="comment-avatar">
+                            {{ commentaire.utilisateur.username.0|upper }}
+                        </div>
+                        <div>
+                            <div class="comment-author">{{ commentaire.utilisateur.get_full_name|default:commentaire.utilisateur.username }}</div>
+                            <div class="comment-date">{{ commentaire.date_creation|date:"d F Y à H:i" }}</div>
+                        </div>
+                    </div>
+                    <div class="comment-content">
+                        {{ commentaire.contenu|linebreaks }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    Aucun commentaire pour le moment. Soyez le premier à donner votre avis !
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Œuvres similaires -->
+{% if oeuvres_similaires %}
+<div class="similar-section">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Œuvres Similaires</h2>
+        <div class="grid grid-4">
+            {% for oeuvre_similaire in oeuvres_similaires %}
+            <article class="oeuvre-card">
+                <div class="oeuvre-image">
+                    <a href="{% url 'core:detail_oeuvre' oeuvre_similaire.slug %}">
+                        <img src="{{ oeuvre_similaire.image_miniature.url }}" alt="{{ oeuvre_similaire.titre }}">
+                    </a>
+                </div>
+                <div class="oeuvre-content">
+                    <h3 class="oeuvre-title">
+                        <a href="{% url 'core:detail_oeuvre' oeuvre_similaire.slug %}">{{ oeuvre_similaire.titre }}</a>
+                    </h3>
+                    <p class="oeuvre-artist">
+                        {% if oeuvre_similaire.artiste %}{{ oeuvre_similaire.artiste.nom }}{% else %}Artiste inconnu{% endif %}
+                    </p>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Gestion des onglets médias
+document.querySelectorAll('.media-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const targetTab = this.dataset.tab;
+
+        // Désactiver tous les onglets
+        document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        // Activer l'onglet cliqué
+        this.classList.add('active');
+        document.getElementById('tab-' + targetTab).classList.add('active');
+
+        // Charger le modèle 3D si c'est l'onglet 3D
+        if (targetTab === '3d') {
+            init3DModel();
+        }
+    });
+});
+
+// Chargement du modèle 3D
+{% if oeuvre.modele_3d %}
+let scene, camera, renderer, model;
+
+function init3DModel() {
+    if (renderer) return; // Déjà initialisé
+
+    const container = document.getElementById('model-viewer');
+
+    // Scène
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf5f5f5);
+
+    // Caméra
+    camera = new THREE.PerspectiveCamera(
+        75,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        1000
+    );
+    camera.position.z = 5;
+
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.innerHTML = '';
+    container.appendChild(renderer.domElement);
+
+    // Lumières
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    // Charger le modèle (exemple avec un cube par défaut)
+    const geometry = new THREE.BoxGeometry(2, 2, 2);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x6366f1,
+        metalness: 0.3,
+        roughness: 0.4
+    });
+    model = new THREE.Mesh(geometry, material);
+    scene.add(model);
+
+    // Animation
+    function animate() {
+        requestAnimationFrame(animate);
+        if (model) {
+            model.rotation.x += 0.01;
+            model.rotation.y += 0.01;
+        }
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Responsive
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+}
+
+// Initialiser au chargement si l'onglet 3D est actif
+if (document.querySelector('.media-tab[data-tab="3d"]').classList.contains('active')) {
+    setTimeout(init3DModel, 100);
+}
+{% endif %}
+
+// Gestion des favoris
+document.querySelectorAll('.btn-favorite').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+
+        const oeuvreId = this.dataset.oeuvreId;
+        const isFavorite = this.classList.contains('is-favorite');
+        const url = isFavorite
+            ? `/oeuvre/${oeuvreId}/retirer-favori/`
+            : `/oeuvre/${oeuvreId}/ajouter-favori/`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok) {
+                this.classList.toggle('is-favorite');
+                const svg = this.querySelector('svg path');
+
+                if (this.classList.contains('is-favorite')) {
+                    this.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" fill="currentColor"/>
+                        </svg>
+                        Dans les favoris
+                    `;
+                } else {
+                    this.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        Ajouter aux favoris
+                    `;
+                }
+
+                showNotification(
+                    isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris',
+                    'success'
+                );
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            showNotification('Une erreur est survenue', 'error');
+        }
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

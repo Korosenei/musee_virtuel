@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Salles Virtuelles{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.828-1.415 1.415L51.8 0h2.827z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.3;
+}
+
+.page-header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.page-title {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.page-subtitle {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+}
+
+.header-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background-color: white;
+    color: var(--primary-color);
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.header-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.salles-section {
+    padding: 4rem 0;
+}
+
+.salles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2.5rem;
+}
+
+.salle-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: var(--transition);
+    position: relative;
+}
+
+.salle-card:hover {
+    transform: translateY(-12px);
+    box-shadow: var(--shadow-2xl);
+    border-color: var(--primary-color);
+}
+
+.salle-preview {
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.salle-preview::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.5));
+}
+
+.salle-3d-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    box-shadow: var(--shadow-lg);
+}
+
+.salle-dimensions {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dimension-badge {
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: white;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.salle-content {
+    padding: 1.5rem;
+}
+
+.salle-category {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.salle-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.salle-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.salle-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.info-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.info-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.salle-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 0.875rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.action-btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.action-btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.action-btn-outline {
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+}
+
+.action-btn-outline:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.lighting-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.lighting-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #fbbf24;
+}
+
+@media (max-width: 768px) {
+    .salles-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .salle-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">Salles Virtuelles</h1>
+            <p class="page-subtitle">Explorez nos espaces d'exposition en 3D et découvrez les œuvres dans leur environnement</p>
+            <a href="{% url 'core:visite_virtuelle' %}" class="header-cta">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 18L18 12L12 6M6 18L12 12L6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Démarrer la visite 3D
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Salles Section -->
+<section class="salles-section">
+    <div class="container">
+        {% if salles %}
+            <div class="salles-grid">
+                {% for salle in salles %}
+                    <article class="salle-card">
+                        <div class="salle-preview" style="background: linear-gradient(135deg, {{ salle.couleur_murs|default:'#667eea' }}, {{ salle.couleur_murs|default:'#764ba2' }}dd);">
+                            <div class="salle-3d-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 3L3 7.5V16.5L12 21L21 16.5V7.5L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M12 12V21" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M3 7.5L12 12L21 7.5" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </div>
+
+                            <div class="salle-dimensions">
+                                <span class="dimension-badge">{{ salle.largeur|floatformat:0 }}m × {{ salle.longueur|floatformat:0 }}m</span>
+                                <span class="dimension-badge">H: {{ salle.hauteur|floatformat:0 }}m</span>
+                            </div>
+                        </div>
+
+                        <div class="salle-content">
+                            <span class="salle-category">{{ salle.categorie.nom }}</span>
+
+                            <h3 class="salle-name">{{ salle.nom }}</h3>
+
+                            <div class="lighting-indicator">
+                                <span class="lighting-dot"></span>
+                                <span>{{ salle.get_eclairage_display }}</span>
+                            </div>
+
+                            <p class="salle-description">{{ salle.description }}</p>
+
+                            <div class="salle-info">
+                                <div class="info-item">
+                                    <div class="info-icon">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                        </svg>
+                                    </div>
+                                    <div class="info-text">
+                                        <span class="info-label">Œuvres</span>
+                                        <span class="info-value">{{ salle.nombre_oeuvres }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
+                                    <div class="info-icon">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M2 2L14 2L14 14L2 14L2 2Z" stroke="currentColor" stroke-width="1.5"/>
+                                            <path d="M2 8H14" stroke="currentColor" stroke-width="1.5"/>
+                                            <path d="M8 2V14" stroke="currentColor" stroke-width="1.5"/>
+                                        </svg>
+                                    </div>
+                                    <div class="info-text">
+                                        <span class="info-label">Surface</span>
+                                        <span class="info-value">{{ salle.largeur|floatformat:0|mul:salle.longueur|floatformat:0 }}m²</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="salle-actions">
+                                <a href="{% url 'core:visite_virtuelle_salle' salle.slug %}" class="action-btn action-btn-primary">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <path d="M10 15L15 10L10 5M5 15L10 10L5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    Visite 3D
+                                </a>
+                                <a href="{% url 'core:detail_salle' salle.slug %}" class="action-btn action-btn-outline">
+                                    Détails
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 0; color: var(--text-muted);">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="margin: 0 auto 1rem; opacity: 0.5;">
+                    <rect x="10" y="15" width="60" height="50" rx="4" stroke="currentColor" stroke-width="4"/>
+                    <path d="M10 30H70M10 45H70M10 60H70" stroke="currentColor" stroke-width="4"/>
+                </svg>
+                <h3>Aucune salle disponible</h3>
+                <p>Revenez bientôt pour découvrir nos espaces d'exposition</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

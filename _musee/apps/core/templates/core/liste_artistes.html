@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Artistes{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.page-subtitle {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+.artistes-section {
+    padding: 4rem 0;
+}
+
+.artistes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.artiste-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.artiste-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-color);
+}
+
+.artiste-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 2rem auto 1rem;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.artiste-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.artiste-content {
+    padding: 0 2rem 2rem;
+}
+
+.artiste-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.artiste-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.artiste-bio {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.artiste-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.artiste-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    transition: var(--transition);
+}
+
+.artiste-link:hover {
+    gap: 0.75rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 3rem 0;
+}
+
+.pagination-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-color);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(.disabled):not(.active) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.pagination-btn.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .artistes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Nos Artistes</h1>
+        <p class="page-subtitle">Découvrez les créateurs exceptionnels de notre collection</p>
+    </div>
+</div>
+
+<!-- Artistes Section -->
+<section class="artistes-section">
+    <div class="container">
+        {% if artistes %}
+            <div class="artistes-grid">
+                {% for artiste in artistes %}
+                    <article class="artiste-card">
+                        <a href="{% url 'core:detail_artiste' artiste.slug %}">
+                            <div class="artiste-avatar">
+                                {% if artiste.photo %}
+                                    <img src="{{ artiste.photo.url }}" alt="{{ artiste.nom }}">
+                                {% else %}
+                                    {{ artiste.nom.0|upper }}
+                                {% endif %}
+                            </div>
+                        </a>
+
+                        <div class="artiste-content">
+                            <h3 class="artiste-name">
+                                <a href="{% url 'core:detail_artiste' artiste.slug %}">{{ artiste.nom }}</a>
+                            </h3>
+
+                            <div class="artiste-info">
+                                {% if artiste.nationalite %}
+                                    {{ artiste.nationalite }}
+                                {% endif %}
+                                {% if artiste.annee_naissance %}
+                                    <br>{{ artiste.annee_naissance }}{% if artiste.annee_deces %} - {{ artiste.annee_deces }}{% endif %}
+                                {% endif %}
+                            </div>
+
+                            {% if artiste.biographie %}
+                                <p class="artiste-bio">{{ artiste.biographie|truncatewords:20 }}</p>
+                            {% endif %}
+
+                            <div class="artiste-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">{{ artiste.nombre_oeuvres }}</span>
+                                    <span class="stat-label">Œuvre{{ artiste.nombre_oeuvres|pluralize }}</span>
+                                </div>
+                            </div>
+
+                            <a href="{% url 'core:detail_artiste' artiste.slug %}" class="artiste-link">
+                                Découvrir
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if artistes.has_other_pages %}
+                <div class="pagination">
+                    {% if artistes.has_previous %}
+                        <a href="?page=1" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M13 4L9 8L13 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                        <a href="?page={{ artistes.previous_page_number }}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+
+                    <span class="pagination-btn active">{{ artistes.number }}</span>
+                    <span class="pagination-btn disabled">sur {{ artistes.paginator.num_pages }}</span>
+
+                    {% if artistes.has_next %}
+                        <a href="?page={{ artistes.next_page_number }}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                        <a href="?page={{ artistes.paginator.num_pages }}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M3 4L7 8L3 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div style="text-align: center; padding: 4rem 0; color: var(--text-muted);">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="margin: 0 auto 1rem; opacity: 0.5;">
+                    <circle cx="40" cy="40" r="35" stroke="currentColor" stroke-width="4"/>
+                    <circle cx="40" cy="30" r="12" stroke="currentColor" stroke-width="4"/>
+                    <path d="M15 65C15 52 25 45 40 45C55 45 65 52 65 65" stroke="currentColor" stroke-width="4"/>
+                </svg>
+                <h3>Aucun artiste disponible</h3>
+                <p>Revenez bientôt pour découvrir nos artistes</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

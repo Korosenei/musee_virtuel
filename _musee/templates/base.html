@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Musée virtuel interactif et immersif - Explorez l'art, la science et la culture en 3D{% endblock %}">
+    <title>{% block title %}Musée Virtuel{% endblock %} | Musée Interactif</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Personnalisé -->
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="container">
+                <div class="navbar-content">
+                    <!-- Logo -->
+                    <a href="{% url 'core:accueil' %}" class="logo">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <path d="M16 4L4 10V22L16 28L28 22V10L16 4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M16 16V28" stroke="currentColor" stroke-width="2"/>
+                            <path d="M4 10L16 16L28 10" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span>Musée Virtuel</span>
+                    </a>
+
+                    <!-- Navigation Menu -->
+                    <ul class="nav-menu">
+                        <li><a href="{% url 'core:accueil' %}" class="nav-link {% if request.resolver_match.url_name == 'accueil' %}active{% endif %}">Accueil</a></li>
+                        <li><a href="{% url 'core:liste_oeuvres' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_oeuvres' %}active{% endif %}">Œuvres</a></li>
+                        <li><a href="{% url 'core:liste_categories' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_categories' %}active{% endif %}">Catégories</a></li>
+                        <li><a href="{% url 'core:liste_artistes' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_artistes' %}active{% endif %}">Artistes</a></li>
+                        <li><a href="{% url 'core:visite_virtuelle' %}" class="nav-link nav-link-highlight {% if request.resolver_match.url_name == 'visite_virtuelle' %}active{% endif %}">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 15L15 10L10 5M5 15L10 10L5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            Visite 3D
+                        </a></li>
+                    </ul>
+
+                    <!-- User Actions -->
+                    <div class="nav-actions">
+                        <!-- Search -->
+                        <button class="icon-btn" id="search-btn" aria-label="Rechercher">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+                                <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+
+                        {% if user.is_authenticated %}
+                            <!-- User Menu -->
+                            <div class="user-menu">
+                                <button class="user-btn" id="user-menu-btn">
+                                    {% if user.profil.avatar %}
+                                        <img src="{{ user.profil.avatar.url }}" alt="{{ user.username }}">
+                                    {% else %}
+                                        <div class="avatar-placeholder">{{ user.username.0|upper }}</div>
+                                    {% endif %}
+                                </button>
+                                <div class="dropdown-menu" id="user-dropdown">
+                                    <div class="dropdown-header">
+                                        <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
+                                        <p class="user-email">{{ user.email }}</p>
+                                    </div>
+                                    <ul class="dropdown-list">
+                                        <li><a href="{% url 'accounts:profil' %}">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/>
+                                                <path d="M2 13C2 10.2386 4.23858 8 7 8H9C11.7614 8 14 10.2386 14 13" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            Mon profil
+                                        </a></li>
+                                        <li><a href="{% url 'accounts:mes_favoris' %}">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 3L9.5 6.5L13 7L10.5 9.5L11 13L8 11L5 13L5.5 9.5L3 7L6.5 6.5L8 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            Mes favoris
+                                        </a></li>
+                                        <li><a href="{% url 'accounts:mon_historique' %}">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                                <path d="M8 4V8L11 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            </svg>
+                                            Historique
+                                        </a></li>
+                                        <li class="dropdown-divider"></li>
+                                        <li><a href="{% url 'accounts:deconnexion' %}" class="text-danger">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M6 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <path d="M11 11L14 8L11 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <path d="M14 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            </svg>
+                                            Déconnexion
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'accounts:connexion' %}" class="btn btn-outline">Connexion</a>
+                            <a href="{% url 'accounts:inscription' %}" class="btn btn-primary">Inscription</a>
+                        {% endif %}
+
+                        <!-- Mobile Menu Toggle -->
+                        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Search Modal -->
+        <div class="search-modal" id="search-modal">
+            <div class="search-modal-content">
+                <button class="search-close" id="search-close">&times;</button>
+                <form action="{% url 'core:recherche_oeuvres' %}" method="get" class="search-form">
+                    <input type="text" name="q" placeholder="Rechercher une œuvre, un artiste..." autofocus>
+                    <button type="submit">
+                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+                            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <!-- Messages Flash -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="message message-{{ message.tags }}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        {% if message.tags == 'success' %}
+                            <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
+                        {% elif message.tags == 'error' %}
+                            <path d="M7 7L13 13M7 13L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
+                        {% else %}
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 6V10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="10" cy="14" r="1" fill="currentColor"/>
+                        {% endif %}
+                    </svg>
+                    <span>{{ message }}</span>
+                    <button class="message-close">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- À propos -->
+                <div class="footer-section">
+                    <h3>Musée Virtuel</h3>
+                    <p>Explorez l'art, la science et la culture dans un environnement immersif en 3D. Découvrez des milliers d'œuvres du monde entier.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 0C4.477 0 0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.879V12.89h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.989C16.343 19.129 20 14.99 20 10c0-5.523-4.477-10-10-10z" fill="currentColor"/></svg></a>
+                        <a href="#" aria-label="Twitter"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84" fill="currentColor"/></svg></a>
+                        <a href="#" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 0C7.284 0 6.944.012 5.877.06 4.813.11 4.086.278 3.45.525a4.917 4.917 0 00-1.772 1.153A4.917 4.917 0 00.525 3.45C.278 4.086.11 4.813.06 5.877.012 6.944 0 7.284 0 10s.012 3.056.06 4.123c.05 1.064.218 1.791.465 2.427a4.917 4.917 0 001.153 1.772 4.917 4.917 0 001.772 1.153c.636.247 1.363.415 2.427.465C6.944 19.988 7.284 20 10 20s3.056-.012 4.123-.06c1.064-.05 1.791-.218 2.427-.465a4.917 4.917 0 001.772-1.153 4.917 4.917 0 001.153-1.772c.247-.636.415-1.363.465-2.427C19.988 13.056 20 12.716 20 10s-.012-3.056-.06-4.123c-.05-1.064-.218-1.791-.465-2.427a4.917 4.917 0 00-1.153-1.772A4.917 4.917 0 0016.55.525C15.914.278 15.187.11 14.123.06 13.056.012 12.716 0 10 0zm0 1.802c2.67 0 2.987.01 4.041.059.975.045 1.504.207 1.857.344.466.182.8.398 1.15.748.35.35.566.684.748 1.15.137.353.299.882.344 1.857.049 1.054.059 1.371.059 4.041s-.01 2.987-.059 4.041c-.045.975-.207 1.504-.344 1.857a3.097 3.097 0 01-.748 1.15c-.35.35-.684.566-1.15.748-.353.137-.882.299-1.857.344-1.054.049-1.371.059-4.041.059s-2.987-.01-4.041-.059c-.975-.045-1.504-.207-1.857-.344a3.097 3.097 0 01-1.15-.748 3.097 3.097 0 01-.748-1.15c-.137-.353-.299-.882-.344-1.857-.049-1.054-.059-1.371-.059-4.041s.01-2.987.059-4.041c.045-.975.207-1.504.344-1.857.182-.466.398-.8.748-1.15.35-.35.684-.566 1.15-.748.353-.137.882-.299 1.857-.344 1.054-.049 1.371-.059 4.041-.059zm0 12.532a3.333 3.333 0 110-6.666 3.333 3.333 0 010 6.666zm0-8.468a5.135 5.135 0 100 10.27 5.135 5.135 0 000-10.27zm6.538-.203a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z" fill="currentColor"/></svg></a>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="footer-section">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="{% url 'core:accueil' %}">Accueil</a></li>
+                        <li><a href="{% url 'core:liste_oeuvres' %}">Œuvres</a></li>
+                        <li><a href="{% url 'core:liste_categories' %}">Catégories</a></li>
+                        <li><a href="{% url 'core:liste_artistes' %}">Artistes</a></li>
+                        <li><a href="{% url 'core:visite_virtuelle' %}">Visite 3D</a></li>
+                    </ul>
+                </div>
+
+                <!-- Liens utiles -->
+                <div class="footer-section">
+                    <h4>À propos</h4>
+                    <ul>
+                        <li><a href="{% url 'core:a_propos' %}">Qui sommes-nous</a></li>
+                        <li><a href="{% url 'core:contact' %}">Contact</a></li>
+                        <li><a href="#">Mentions légales</a></li>
+                        <li><a href="#">Politique de confidentialité</a></li>
+                        <li><a href="#">CGU</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <p>Restez informé des nouvelles œuvres et expositions.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Votre email" required>
+                        <button type="submit">S'abonner</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Musée Virtuel. Tous droits réservés.</p>
+                <p>Projet Master 1 - Technologies Web et Multimédia</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ artiste.nom }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.artiste-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.artiste-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.828-1.415 1.415L51.8 0h2.827z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.3;
+}
+
+.artiste-header-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+.artiste-avatar-large {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-2xl);
+}
+
+.artiste-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.artiste-info h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.artiste-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.artiste-description {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    opacity: 0.95;
+}
+
+.artiste-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.stat-box {
+    padding: 1rem 2rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.artiste-website {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: white;
+    color: var(--primary-color);
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: var(--transition);
+}
+
+.artiste-website:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.oeuvres-section {
+    padding: 4rem 0;
+}
+
+.section-header {
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+}
+
+.oeuvres-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.oeuvre-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.oeuvre-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+}
+
+.oeuvre-image {
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    background-color: var(--bg-tertiary);
+    position: relative;
+}
+
+.oeuvre-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.oeuvre-card:hover .oeuvre-image img {
+    transform: scale(1.1);
+}
+
+.oeuvre-year-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.oeuvre-content {
+    padding: 1.25rem;
+}
+
+.oeuvre-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.oeuvre-category {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.oeuvre-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.oeuvre-views {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.oeuvre-link {
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: var(--transition);
+}
+
+.oeuvre-link:hover {
+    gap: 0.5rem;
+}
+
+.timeline-section {
+    background-color: var(--bg-secondary);
+    padding: 4rem 0;
+    margin-top: 3rem;
+}
+
+.timeline {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+}
+
+.timeline-item {
+    position: relative;
+    padding: 1.5rem 0;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.5rem;
+    top: 2rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--bg-secondary);
+}
+
+.timeline-year {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.timeline-content {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .artiste-header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .artiste-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .oeuvres-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Artiste Header -->
+<div class="artiste-header">
+    <div class="container">
+        <div class="artiste-header-content">
+            <div class="artiste-avatar-large">
+                {% if artiste.photo %}
+                    <img src="{{ artiste.photo.url }}" alt="{{ artiste.nom }}">
+                {% else %}
+                    {{ artiste.nom.0|upper }}
+                {% endif %}
+            </div>
+
+            <div class="artiste-info">
+                <h1>{{ artiste.nom }}</h1>
+
+                <div class="artiste-meta">
+                    {% if artiste.nationalite %}
+                        <div class="meta-item">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2C10 2 2 6 2 10C2 14 5 17 10 18C15 17 18 14 18 10C18 6 10 2 10 2Z" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            {{ artiste.nationalite }}
+                        </div>
+                    {% endif %}
+
+                    {% if artiste.annee_naissance %}
+                        <div class="meta-item">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <rect x="3" y="4" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                                <path d="M7 2V6M13 2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            {{ artiste.annee_naissance }}{% if artiste.annee_deces %} - {{ artiste.annee_deces }}{% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if artiste.biographie %}
+                    <p class="artiste-description">{{ artiste.biographie|truncatewords:50 }}</p>
+                {% endif %}
+
+                <div class="artiste-stats">
+                    <div class="stat-box">
+                        <span class="stat-number">{{ oeuvres.count }}</span>
+                        <span class="stat-label">Œuvre{{ oeuvres.count|pluralize }}</span>
+                    </div>
+                </div>
+
+                {% if artiste.site_web %}
+                    <a href="{{ artiste.site_web }}" target="_blank" class="artiste-website">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
+                            <path d="M2 10H18M10 2C10 2 6 5 6 10C6 15 10 18 10 18M10 2C10 2 14 5 14 10C14 15 10 18 10 18" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        Visiter le site web
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Oeuvres Section -->
+<section class="oeuvres-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Œuvres de {{ artiste.nom }}</h2>
+            <p class="section-subtitle">{{ oeuvres.count }} œuvre{{ oeuvres.count|pluralize }} dans notre collection</p>
+        </div>
+
+        {% if oeuvres %}
+            <div class="oeuvres-grid">
+                {% for oeuvre in oeuvres %}
+                    <article class="oeuvre-card">
+                        <div class="oeuvre-image">
+                            <a href="{% url 'core:detail_oeuvre' oeuvre.slug %}">
+                                <img src="{{ oeuvre.image_miniature.url }}" alt="{{ oeuvre.titre }}">
+                            </a>
+                            {% if oeuvre.annee %}
+                                <span class="oeuvre-year-badge">{{ oeuvre.annee }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="oeuvre-content">
+                            <h3 class="oeuvre-title">
+                                <a href="{% url 'core:detail_oeuvre' oeuvre.slug %}">{{ oeuvre.titre }}</a>
+                            </h3>
+                            <p class="oeuvre-category">{{ oeuvre.categorie.nom }}</p>
+                            <div class="oeuvre-footer">
+                                <span class="oeuvre-views">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M1 8C1 8 3 3 8 3C13 3 15 8 15 8C15 8 13 13 8 13C3 13 1 8 1 8Z" stroke="currentColor" stroke-width="1.5"/>
+                                        <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    {{ oeuvre.nombre_vues }}
+                                </span>
+                                <a href="{% url 'core:detail_oeuvre' oeuvre.slug %}" class="oeuvre-link">
+                                    Voir
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 0; color: var(--text-muted);">
+                <p>Aucune œuvre disponible pour cet artiste.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Biography Timeline (if biographie exists) -->
+{% if artiste.biographie %}
+<section class="timeline-section">
+    <div class="container">
+        <div class="section-header" style="text-align: center;">
+            <h2 class="section-title">Biographie</h2>
+        </div>
+
+        <div class="timeline">
+            {% if artiste.annee_naissance %}
+                <div class="timeline-item">
+                    <div class="timeline-year">{{ artiste.annee_naissance }}</div>
+                    <div class="timeline-content">Naissance{% if artiste.nationalite %} en {{ artiste.nationalite }}{% endif %}</div>
+                </div>
+            {% endif %}
+
+            <div class="timeline-item">
+                <div class="timeline-year">Carrière</div>
+                <div class="timeline-content">{{ artiste.biographie }}</div>
+            </div>
+
+            {% if artiste.annee_deces %}
+                <div class="timeline-item">
+                    <div class="timeline-year">{{ artiste.annee_deces }}</div>
+                    <div class="timeline-content">Décès</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
