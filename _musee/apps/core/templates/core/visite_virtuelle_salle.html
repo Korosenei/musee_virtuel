@@ -1,0 +1,882 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Visite 3D - {{ salle.nom }}{% endblock %}
+
+{% block extra_css %}
+<style>
+body {
+    overflow: hidden;
+}
+
+.vr-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+}
+
+#canvas3d {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.vr-ui {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.vr-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: all;
+}
+
+.vr-title-box {
+    color: white;
+}
+
+.vr-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.vr-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.vr-controls-top {
+    display: flex;
+    gap: 1rem;
+}
+
+.vr-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.vr-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.vr-controls {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    pointer-events: all;
+}
+
+.control-btn {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.control-btn.active {
+    background-color: rgba(99, 102, 241, 0.8);
+    border-color: rgba(99, 102, 241, 1);
+}
+
+.vr-sidebar {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 400px;
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(20px);
+    padding: 2rem;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    pointer-events: all;
+}
+
+.vr-sidebar.active {
+    transform: translateX(0);
+}
+
+.sidebar-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+.sidebar-content {
+    color: white;
+}
+
+.sidebar-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.sidebar-image {
+    width: 100%;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.sidebar-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.sidebar-description {
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.sidebar-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sidebar-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary-sidebar {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border: none;
+    color: white;
+}
+
+.btn-outline-sidebar {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.minimap {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    width: 200px;
+    height: 200px;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    pointer-events: all;
+}
+
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 200;
+    transition: opacity 0.5s ease;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.help-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(20px);
+    padding: 3rem;
+    border-radius: 1rem;
+    color: white;
+    max-width: 600px;
+    pointer-events: all;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.help-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.help-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.help-key {
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.help-description {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .vr-sidebar {
+        width: 100%;
+    }
+
+    .vr-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .help-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .minimap {
+        width: 150px;
+        height: 150px;
+        bottom: 6rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Loading Screen -->
+<div class="loading-screen" id="loading-screen">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Chargement de la salle...</div>
+</div>
+
+<!-- 3D Canvas -->
+<div class="vr-container">
+    <canvas id="canvas3d"></canvas>
+</div>
+
+<!-- UI Overlay -->
+<div class="vr-ui">
+    <!-- Header -->
+    <div class="vr-header">
+        <div class="vr-title-box">
+            <div class="vr-title">{{ salle.nom }}</div>
+            <div class="vr-subtitle">{{ salle.categorie.nom }} • {{ oeuvres.count }} œuvre{{ oeuvres.count|pluralize }}</div>
+        </div>
+        <div class="vr-controls-top">
+            <button class="vr-btn" id="help-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M10 14V10M10 6H10.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Aide
+            </button>
+            <a href="{% url 'core:visite_virtuelle' %}" class="vr-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M15 10L5 10M5 10L9 6M5 10L9 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Quitter
+            </a>
+        </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="vr-controls">
+        <button class="control-btn" id="audio-btn" title="Audio guide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M11 5L6 9H2V15H6L11 19V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M15.54 8.46C16.4774 9.39764 17.0039 10.6692 17.0039 11.995C17.0039 13.3208 16.4774 14.5924 15.54 15.53" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <button class="control-btn active" id="walk-btn" title="Mode marche">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M13 5C13 6.10457 12.1046 7 11 7C9.89543 7 9 6.10457 9 5C9 3.89543 9.89543 3 11 3C12.1046 3 13 3.89543 13 5Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 21V15L9 11L7 8H15L13 11L15 15V21M9 21V18M13 21V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="control-btn" id="fly-btn" title="Mode vol">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L3 9L12 12L21 9L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M12 12V22M3 15L12 18L21 15" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="control-btn" id="info-btn" title="Afficher les infos">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Minimap -->
+    <div class="minimap">
+        <canvas id="minimap-canvas"></canvas>
+    </div>
+
+    <!-- Sidebar (Info Oeuvre) -->
+    <div class="vr-sidebar" id="artwork-sidebar">
+        <button class="sidebar-close" id="sidebar-close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <div class="sidebar-content" id="sidebar-content">
+            <!-- Le contenu sera injecté dynamiquement -->
+        </div>
+    </div>
+
+    <!-- Help Overlay -->
+    <div class="help-overlay" id="help-overlay">
+        <h3 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Contrôles</h3>
+        <p style="opacity: 0.8; margin-bottom: 1.5rem;">Utilisez ces touches pour naviguer dans la salle</p>
+
+        <div class="help-grid">
+            <div class="help-item">
+                <div class="help-key">Z Q S D / ↑ ← ↓ →</div>
+                <div class="help-description">Se déplacer</div>
+            </div>
+            <div class="help-item">
+                <div class="help-key">Souris</div>
+                <div class="help-description">Regarder autour</div>
+            </div>
+            <div class="help-item">
+                <div class="help-key">Clic gauche</div>
+                <div class="help-description">Interagir avec une œuvre</div>
+            </div>
+            <div class="help-item">
+                <div class="help-key">Espace</div>
+                <div class="help-description">Monter (mode vol)</div>
+            </div>
+            <div class="help-item">
+                <div class="help-key">Shift</div>
+                <div class="help-description">Descendre (mode vol)</div>
+            </div>
+            <div class="help-item">
+                <div class="help-key">Échap</div>
+                <div class="help-description">Fermer les menus</div>
+            </div>
+        </div>
+
+        <button class="vr-btn" style="width: 100%; margin-top: 2rem; justify-content: center;" onclick="document.getElementById('help-overlay').classList.remove('active')">
+            Compris
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Données des œuvres
+const oeuvresData = [
+    {% for oeuvre in oeuvres %}
+    {
+        id: {{ oeuvre.id }},
+        titre: "{{ oeuvre.titre|escapejs }}",
+        artiste: "{% if oeuvre.artiste %}{{ oeuvre.artiste.nom|escapejs }}{% else %}Artiste inconnu{% endif %}",
+        annee: {% if oeuvre.annee %}{{ oeuvre.annee }}{% else %}null{% endif %},
+        description: "{{ oeuvre.description|escapejs|truncatewords:50 }}",
+        image: "{{ oeuvre.image_miniature.url }}",
+        imageHD: "{% if oeuvre.image_haute_resolution %}{{ oeuvre.image_haute_resolution.url }}{% else %}{{ oeuvre.image_miniature.url }}{% endif %}",
+        slug: "{{ oeuvre.slug }}",
+        position: {
+            x: {{ oeuvre.position_x }},
+            y: {{ oeuvre.position_y }},
+            z: {{ oeuvre.position_z }}
+        },
+        rotation: {{ oeuvre.rotation }},
+        hasAudio: {% if oeuvre.audio_guide %}true{% else %}false{% endif %},
+        hasVideo: {% if oeuvre.video or oeuvre.lien_video_externe %}true{% else %}false{% endif %},
+        has3D: {% if oeuvre.modele_3d %}true{% else %}false{% endif %}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Configuration de la salle
+const salleConfig = {
+    largeur: {{ salle.largeur }},
+    longueur: {{ salle.longueur }},
+    hauteur: {{ salle.hauteur }},
+    couleurMurs: "{{ salle.couleur_murs }}",
+    eclairage: "{{ salle.eclairage }}"
+};
+
+// Variables globales
+let scene, camera, renderer, controls;
+let player = {
+    velocity: new THREE.Vector3(),
+    canJump: false,
+    height: 1.6,
+    speed: 0.1,
+    flyMode: false
+};
+let keys = {};
+let artworks = [];
+let selectedArtwork = null;
+let raycaster, mouse;
+
+// Initialisation
+function init() {
+    // Scène
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf5f5f5);
+    scene.fog = new THREE.Fog(0xf5f5f5, 10, 50);
+
+    // Caméra (première personne)
+    camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.set(0, player.height, salleConfig.longueur / 2);
+
+    // Renderer
+    const canvas = document.getElementById('canvas3d');
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Raycaster pour les interactions
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+
+    // Créer la salle
+    createRoom();
+
+    // Créer les lumières
+    createLights();
+
+    // Placer les œuvres
+    placeArtworks();
+
+    // Event listeners
+    setupEventListeners();
+
+    // Démarrer l'animation
+    animate();
+
+    // Masquer l'écran de chargement
+    setTimeout(() => {
+        document.getElementById('loading-screen').classList.add('hidden');
+    }, 1000);
+}
+
+// Créer la salle 3D
+function createRoom() {
+    const w = salleConfig.largeur / 2;
+    const l = salleConfig.longueur / 2;
+    const h = salleConfig.hauteur;
+
+    // Matériau des murs
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        color: salleConfig.couleurMurs,
+        roughness: 0.8,
+        metalness: 0.2
+    });
+
+    // Sol
+    const floorGeometry = new THREE.PlaneGeometry(salleConfig.largeur, salleConfig.longueur);
+    const floorMaterial = new THREE.MeshStandardMaterial({
+        color: 0xcccccc,
+        roughness: 0.9
+    });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Murs
+    const wallGeometry = new THREE.PlaneGeometry(salleConfig.largeur, h);
+
+    // Mur fond
+    const wallBack = new THREE.Mesh(wallGeometry, wallMaterial);
+    wallBack.position.z = -l;
+    wallBack.position.y = h / 2;
+    wallBack.receiveShadow = true;
+    scene.add(wallBack);
+
+    // Mur devant
+    const wallFront = new THREE.Mesh(wallGeometry, wallMaterial);
+    wallFront.position.z = l;
+    wallFront.position.y = h / 2;
+    wallFront.rotation.y = Math.PI;
+    wallFront.receiveShadow = true;
+    scene.add(wallFront);
+
+    // Murs latéraux
+    const wallSideGeometry = new THREE.PlaneGeometry(salleConfig.longueur, h);
+
+    const wallLeft = new THREE.Mesh(wallSideGeometry, wallMaterial);
+    wallLeft.position.x = -w;
+    wallLeft.position.y = h / 2;
+    wallLeft.rotation.y = Math.PI / 2;
+    wallLeft.receiveShadow = true;
+    scene.add(wallLeft);
+
+    const wallRight = new THREE.Mesh(wallSideGeometry, wallMaterial);
+    wallRight.position.x = w;
+    wallRight.position.y = h / 2;
+    wallRight.rotation.y = -Math.PI / 2;
+    wallRight.receiveShadow = true;
+    scene.add(wallRight);
+
+    // Plafond
+    const ceiling = new THREE.Mesh(floorGeometry, wallMaterial);
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = h;
+    scene.add(ceiling);
+}
+
+// Créer les lumières
+function createLights() {
+    // Lumière ambiante
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    // Lumières directionnelles
+    const lightIntensity = salleConfig.eclairage === 'tamisé' ? 0.3 : 0.6;
+
+    for (let i = 0; i < 4; i++) {
+        const light = new THREE.SpotLight(0xffffff, lightIntensity);
+        const angle = (Math.PI * 2 * i) / 4;
+        const distance = Math.min(salleConfig.largeur, salleConfig.longueur) / 3;
+
+        light.position.set(
+            Math.cos(angle) * distance,
+            salleConfig.hauteur - 0.5,
+            Math.sin(angle) * distance
+        );
+        light.castShadow = true;
+        light.angle = Math.PI / 6;
+        light.penumbra = 0.3;
+        scene.add(light);
+    }
+}
+
+// Placer les œuvres
+function placeArtworks() {
+    const textureLoader = new THREE.TextureLoader();
+
+    oeuvresData.forEach((data, index) => {
+        // Créer le cadre
+        const frameGeometry = new THREE.BoxGeometry(1.2, 1.6, 0.1);
+        const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+        const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+
+        // Positionner
+        if (data.position.x === 0 && data.position.z === 0) {
+            // Position automatique si non définie
+            const wallIndex = index % 4;
+            const spacing = 2;
+            const offsetIndex = Math.floor(index / 4);
+
+            switch(wallIndex) {
+                case 0: // Mur fond
+                    frame.position.set(-salleConfig.largeur/4 + offsetIndex * spacing, 1.5, -salleConfig.longueur/2 + 0.1);
+                    break;
+                case 1: // Mur droite
+                    frame.position.set(salleConfig.largeur/2 - 0.1, 1.5, -salleConfig.longueur/4 + offsetIndex * spacing);
+                    frame.rotation.y = -Math.PI / 2;
+                    break;
+                case 2: // Mur devant
+                    frame.position.set(salleConfig.largeur/4 - offsetIndex * spacing, 1.5, salleConfig.longueur/2 - 0.1);
+                    frame.rotation.y = Math.PI;
+                    break;
+                case 3: // Mur gauche
+                    frame.position.set(-salleConfig.largeur/2 + 0.1, 1.5, salleConfig.longueur/4 - offsetIndex * spacing);
+                    frame.rotation.y = Math.PI / 2;
+                    break;
+            }
+        } else {
+            frame.position.set(data.position.x, data.position.y || 1.5, data.position.z);
+            frame.rotation.y = data.rotation * (Math.PI / 180);
+        }
+
+        frame.castShadow = true;
+        frame.userData = data;
+        scene.add(frame);
+        artworks.push(frame);
+
+        // Charger la texture de l'image
+        textureLoader.load(data.image, (texture) => {
+            const artGeometry = new THREE.PlaneGeometry(1, 1.4);
+            const artMaterial = new THREE.MeshStandardMaterial({ map: texture });
+            const artwork = new THREE.Mesh(artGeometry, artMaterial);
+            artwork.position.z = 0.06;
+            frame.add(artwork);
+        });
+
+        // Ajouter un spot sur l'œuvre
+        const spotLight = new THREE.SpotLight(0xffffff, 0.5);
+        spotLight.position.copy(frame.position);
+        spotLight.position.y += 1;
+        spotLight.target = frame;
+        spotLight.angle = Math.PI / 8;
+        scene.add(spotLight);
+    });
+}
+
+// Event listeners
+function setupEventListeners() {
+    // Clavier
+    document.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+        if (e.code === 'Escape') {
+            document.getElementById('artwork-sidebar').classList.remove('active');
+            document.getElementById('help-overlay').classList.remove('active');
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        keys[e.code] = false;
+    });
+
+    // Souris
+    let isPointerLocked = false;
+    canvas3d.addEventListener('click', () => {
+        canvas3d.requestPointerLock();
+    });
+
+    document.addEventListener('pointerlockchange', () => {
+        isPointerLocked = document.pointerLockElement === canvas3d;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isPointerLocked) {
+            camera.rotation.y -= e.movementX * 0.002;
+            camera.rotation.x -= e.movementY * 0.002;
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+        }
+    });
+
+    // Clic sur œuvre
+    canvas3d.addEventListener('click', onArtworkClick);
+
+    // Boutons UI
+    document.getElementById('help-btn').addEventListener('click', () => {
+        document.getElementById('help-overlay').classList.add('active');
+    });
+
+    document.getElementById('walk-btn').addEventListener('click', () => {
+        player.flyMode = false;
+        document.getElementById('walk-btn').classList.add('active');
+        document.getElementById('fly-btn').classList.remove('active');
+    });
+
+    document.getElementById('fly-btn').addEventListener('click', () => {
+        player.flyMode = true;
+        document.getElementById('fly-btn').classList.add('active');
+        document.getElementById('walk-btn').classList.remove('active');
+    });
+
+    document.getElementById('sidebar-close').addEventListener('click', () => {
+        document.getElementById('artwork-sidebar').classList.remove('active');
+    });
+
+    // Responsive
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+}
+
+// Détection de clic sur œuvre
+function onArtworkClick(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(artworks);
+
+    if (intersects.length > 0) {
+        const artwork = intersects[0].object;
+        showArtworkInfo(artwork.userData);
+    }
+}
+
+// Afficher les informations d'une œuvre
+function showArtworkInfo(data) {
+    const sidebar = document.getElementById('artwork-sidebar');
+    const content = document.getElementById('sidebar-content');
+
+    content.innerHTML = `
+        <img src="${data.imageHD}" alt="${data.titre}" class="sidebar-image">
+        <h3 class="sidebar-title">${data.titre}</h3>
+        <div class="sidebar-meta">
+            <span>${data.artiste}</span>
+            ${data.annee ? `<span>• ${data.annee}</span>` : ''}
+        </div>
+        <p class="sidebar-description">${data.description}</p>
+        <div class="sidebar-actions">
+            <a href="/oeuvre/${data.slug}/" class="sidebar-btn btn-primary-sidebar">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M1 10C1 10 4 4 10 4C16 4 19 10 19 10C19 10 16 16 10 16C4 16 1 10 1 10Z" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                Voir détails
+            </a>
+            ${data.hasAudio ? `
+            <button class="sidebar-btn btn-outline-sidebar">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M9 4L5 7H2V13H5L9 16V4Z" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </button>
+            ` : ''}
+        </div>
+    `;
+
+    sidebar.classList.add('active');
+}
+
+// Déplacements
+function updateMovement() {
+    const direction = new THREE.Vector3();
+    const rotation = camera.rotation.y;
+
+    // Avancer/Reculer
+    if (keys['KeyW'] || keys['ArrowUp']) {
+        direction.x += Math.sin(rotation);
+        direction.z += Math.cos(rotation);
+    }
+    if (keys['KeyS'] || keys['ArrowDown']) {
+        direction.x -= Math.sin(rotation);
+        direction.z -= Math.cos(rotation);
+    }
+
+    // Gauche/Droite
+    if (keys['KeyA'] || keys['ArrowLeft']) {
+        direction.x += Math.sin(rotation - Math.PI / 2);
+        direction.z += Math.cos(rotation - Math.PI / 2);
+    }
+    if (keys['KeyD'] || keys['ArrowRight']) {
+        direction.x += Math.sin(rotation + Math.PI / 2);
+        direction.z += Math.cos(rotation + Math.PI / 2);
+    }
+
+    // Mode vol
+    if (player.flyMode) {
+        if (keys['Space']) direction.y += 1;
+        if (keys['ShiftLeft']) direction.y -= 1;
+    }
+
+    // Normaliser et appliquer
+    if (direction.length() > 0) {
+        direction.normalize();
+        camera.position.add(direction.multiplyScalar(player.speed));
+    }
+
+    // Limites de la salle
+    const w = salleConfig.largeur / 2 - 0.5;
+    const l = salleConfig.longueur / 2 - 0.5;
+    camera.position.x = Math.max(-w, Math.min(w, camera.position.x));
+    camera.position.z = Math.max(-l, Math.min(l, camera.position.z));
+
+    if (!player.flyMode) {
+        camera.position.y = player.height;
+    } else {
+        camera.position.y = Math.max(0.5, Math.min(salleConfig.hauteur - 0.5, camera.position.y));
+    }
+}
+
+// Boucle d'animation
+function animate() {
+    requestAnimationFrame(animate);
+    updateMovement();
+    renderer.render(scene, camera);
+}
+
+// Démarrage
+init();
+</script>
+{% endblock %}
