@@ -1,1 +1,1 @@
-web: gunicorn _musee.wsgi --log-file -
+web: gunicorn _musee.wsgi:application
