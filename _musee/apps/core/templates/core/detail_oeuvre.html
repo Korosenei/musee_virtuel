@@ -323,7 +323,7 @@ audio, video {
                             {% if est_favori %}Dans les favoris{% else %}Ajouter aux favoris{% endif %}
                         </button>
                     {% else %}
-                        <a href="{% url 'comptes:connexion' %}?next={{ request.path }}" class="action-btn">
+                        <a href="{% url 'accounts:connexion' %}?next={{ request.path }}" class="action-btn">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                 <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" stroke="currentColor" stroke-width="1.5"/>
                             </svg>
@@ -519,7 +519,7 @@ audio, video {
             {% else %}
             <div class="comment-form">
                 <p>
-                    <a href="{% url 'comptes:connexion' %}?next={{ request.path }}">Connectez-vous</a> pour laisser un commentaire.
+                    <a href="{% url 'accounts:connexion' %}?next={{ request.path }}">Connectez-vous</a> pour laisser un commentaire.
                 </p>
             </div>
             {% endif %}
@@ -674,56 +674,7 @@ if (document.querySelector('.media-tab[data-tab="3d"]').classList.contains('acti
 }
 {% endif %}
 
-// Gestion des favoris
-document.querySelectorAll('.btn-favorite').forEach(btn => {
-    btn.addEventListener('click', async function(e) {
-        e.preventDefault();
 
-        const oeuvreId = this.dataset.oeuvreId;
-        const isFavorite = this.classList.contains('is-favorite');
-        const url = isFavorite
-            ? `/oeuvre/${oeuvreId}/retirer-favori/`
-            : `/oeuvre/${oeuvreId}/ajouter-favori/`;
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
-            });
-
-            if (response.ok) {
-                this.classList.toggle('is-favorite');
-                const svg = this.querySelector('svg path');
-
-                if (this.classList.contains('is-favorite')) {
-                    this.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" fill="currentColor"/>
-                        </svg>
-                        Dans les favoris
-                    `;
-                } else {
-                    this.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                        Ajouter aux favoris
-                    `;
-                }
-
-                showNotification(
-                    isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris',
-                    'success'
-                );
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
-            showNotification('Une erreur est survenue', 'error');
-        }
-    });
-});
 
 function getCookie(name) {
     let cookieValue = null;
@@ -739,5 +690,184 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+function showNotification(message, type = 'success') {
+    // Créer l'élément de notification
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background-color: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 9999;
+        animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+
+    // Retirer après 3 secondes
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Gestion du formulaire de commentaire
+document.addEventListener('DOMContentLoaded', function() {
+    const commentForm = document.querySelector('.ajax-form');
+
+    if (commentForm) {
+        commentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            // Désactiver le bouton pendant l'envoi
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Envoi en cours...';
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Réinitialiser le formulaire
+                    this.reset();
+                } else {
+                    // Afficher les erreurs
+                    let errorMsg = 'Erreur lors de l\'ajout du commentaire';
+                    if (data.errors) {
+                        errorMsg = Object.values(data.errors).flat().join(', ');
+                    }
+                    showNotification(errorMsg, 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('Une erreur est survenue', 'error');
+            } finally {
+                // Réactiver le bouton
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    }
+
+    // Gestion des favoris
+    document.querySelectorAll('.btn-favorite').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            const oeuvreId = this.dataset.oeuvreId;
+            const isFavorite = this.classList.contains('is-favorite');
+            const url = isFavorite
+                ? `/oeuvre/${oeuvreId}/retirer-favori/`
+                : `/oeuvre/${oeuvreId}/ajouter-favori/`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.classList.toggle('is-favorite');
+
+                    if (this.classList.contains('is-favorite')) {
+                        this.innerHTML = `
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" fill="currentColor"/>
+                            </svg>
+                            Dans les favoris
+                        `;
+                    } else {
+                        this.innerHTML = `
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Ajouter aux favoris
+                        `;
+                    }
+
+                    showNotification(data.message, 'success');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('Une erreur est survenue', 'error');
+            }
+        });
+    });
+
+    // Gestion des onglets médias
+    document.querySelectorAll('.media-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.dataset.tab;
+
+            // Désactiver tous les onglets
+            document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Activer l'onglet cliqué
+            this.classList.add('active');
+            const targetContent = document.getElementById('tab-' + targetTab);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+
+            // Charger le modèle 3D si c'est l'onglet 3D
+            if (targetTab === '3d' && typeof init3DModel === 'function') {
+                init3DModel();
+            }
+        });
+    });
+});
+
+// Ajouter les animations CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}

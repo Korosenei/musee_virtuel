@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST
 
 from .models import Categorie, Artiste, Salle, Oeuvre, Favori, Visite, Commentaire
 from .forms import CommentaireForm, RechercheForm
@@ -125,18 +126,8 @@ def detail_oeuvre(request, slug):
         est_approuve=True
     ).select_related('utilisateur').order_by('-date_creation')
 
-    # Formulaire de commentaire
-    if request.method == 'POST' and request.user.is_authenticated:
-        form = CommentaireForm(request.POST)
-        if form.is_valid():
-            commentaire = form.save(commit=False)
-            commentaire.utilisateur = request.user
-            commentaire.oeuvre = oeuvre
-            commentaire.save()
-            messages.success(request, 'Votre commentaire a été ajouté et sera visible après modération.')
-            return redirect('core:detail_oeuvre', slug=slug)
-    else:
-        form = CommentaireForm()
+    # Formulaire de commentaire (vide pour l'affichage)
+    form = CommentaireForm()
 
     # Œuvres similaires (même catégorie)
     oeuvres_similaires = Oeuvre.objects.filter(
@@ -274,6 +265,7 @@ def visite_virtuelle_salle(request, salle_slug):
 
 
 @login_required
+@require_POST
 def ajouter_favori(request, oeuvre_id):
     """Ajouter une œuvre aux favoris"""
     oeuvre = get_object_or_404(Oeuvre, id=oeuvre_id)
@@ -281,6 +273,14 @@ def ajouter_favori(request, oeuvre_id):
         utilisateur=request.user,
         oeuvre=oeuvre
     )
+
+    # Si c'est une requête AJAX
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'created': created,
+            'message': f'"{oeuvre.titre}" ajoutée à vos favoris.' if created else 'Cette œuvre est déjà dans vos favoris.'
+        })
 
     if created:
         messages.success(request, f'"{oeuvre.titre}" ajoutée à vos favoris.')
@@ -291,56 +291,72 @@ def ajouter_favori(request, oeuvre_id):
 
 
 @login_required
+@require_POST
 def retirer_favori(request, oeuvre_id):
     """Retirer une œuvre des favoris"""
     oeuvre = get_object_or_404(Oeuvre, id=oeuvre_id)
-    Favori.objects.filter(utilisateur=request.user, oeuvre=oeuvre).delete()
+    deleted = Favori.objects.filter(utilisateur=request.user, oeuvre=oeuvre).delete()
+
+    # Si c'est une requête AJAX
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': f'"{oeuvre.titre}" retirée de vos favoris.'
+        })
+
     messages.success(request, f'"{oeuvre.titre}" retirée de vos favoris.')
     return redirect('core:detail_oeuvre', slug=oeuvre.slug)
 
 
 @login_required
+@require_POST
 def ajouter_commentaire(request, oeuvre_id):
-    """Ajouter un commentaire (via AJAX)"""
-    if request.method == 'POST':
-        oeuvre = get_object_or_404(Oeuvre, id=oeuvre_id)
-        form = CommentaireForm(request.POST)
+    """Ajouter un commentaire (via AJAX ou POST classique)"""
+    oeuvre = get_object_or_404(Oeuvre, id=oeuvre_id)
+    form = CommentaireForm(request.POST)
 
-        if form.is_valid():
-            commentaire = form.save(commit=False)
-            commentaire.utilisateur = request.user
-            commentaire.oeuvre = oeuvre
-            commentaire.save()
+    if form.is_valid():
+        commentaire = form.save(commit=False)
+        commentaire.utilisateur = request.user
+        commentaire.oeuvre = oeuvre
+        commentaire.save()
 
+        # Si c'est une requête AJAX
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
-                'message': 'Commentaire ajouté avec succès.'
+                'message': 'Votre commentaire a été ajouté et sera visible après modération.'
             })
 
+        # Sinon, redirection classique
+        messages.success(request, 'Votre commentaire a été ajouté et sera visible après modération.')
+        return redirect('core:detail_oeuvre', slug=oeuvre.slug)
+
+    # En cas d'erreur
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({
             'success': False,
             'errors': form.errors
-        })
+        }, status=400)
 
-    return JsonResponse({'success': False})
+    messages.error(request, 'Erreur lors de l\'ajout du commentaire.')
+    return redirect('core:detail_oeuvre', slug=oeuvre.slug)
 
 
 @login_required
+@require_POST
 def enregistrer_visite(request, oeuvre_id):
     """Enregistrer une visite d'œuvre (AJAX)"""
-    if request.method == 'POST':
-        oeuvre = get_object_or_404(Oeuvre, id=oeuvre_id)
-        duree = int(request.POST.get('duree', 0))
+    oeuvre = get_object_or_404(Oeuvre, id=oeuvre_id)
+    duree = int(request.POST.get('duree', 0))
 
-        Visite.objects.create(
-            utilisateur=request.user,
-            oeuvre=oeuvre,
-            duree_secondes=duree
-        )
+    Visite.objects.create(
+        utilisateur=request.user,
+        oeuvre=oeuvre,
+        duree_secondes=duree
+    )
 
-        return JsonResponse({'success': True})
-
-    return JsonResponse({'success': False})
+    return JsonResponse({'success': True})
 
 
 def a_propos(request):

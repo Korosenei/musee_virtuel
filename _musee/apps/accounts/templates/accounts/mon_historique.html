@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mon Historique{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    padding: 3rem 0;
+}
+
+.stat-card {
+    background-color: var(--bg-color);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.filters-bar {
+    background-color: var(--bg-secondary);
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 73px;
+    z-index: 10;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.filter-tab:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.filter-tab.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.history-section {
+    padding: 3rem 0;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.history-item {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    transition: var(--transition);
+}
+
+.history-item:hover {
+    border-color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.history-thumb {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.history-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.history-content {
+    flex: 1;
+}
+
+.history-category {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.history-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.history-artist {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.history-meta {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.history-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.history-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.history-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.btn-primary-outline {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background-color: transparent;
+}
+
+.btn-primary-outline:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--primary-color), transparent);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.4rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    border: 3px solid var(--bg-color);
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.timeline-date {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state svg {
+    margin: 0 auto 1.5rem;
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .history-item {
+        flex-direction: column;
+    }
+
+    .history-thumb {
+        width: 100%;
+        height: 200px;
+    }
+
+    .history-actions {
+        flex-direction: row;
+    }
+
+    .history-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Mon Historique</h1>
+        <p class="page-subtitle">Suivez vos visites et découvertes</p>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="container">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <path d="M1 14C1 14 5 6 14 6C23 6 27 14 27 14C27 14 23 22 14 22C5 22 1 14 1 14Z" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="14" cy="14" r="4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="stat-value">{{ nombre_total_visites }}</div>
+            <div class="stat-label">Visites totales</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <rect x="4" y="6" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="stat-value">{{ nombre_oeuvres_vues }}</div>
+            <div class="stat-label">Œuvres vues</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <circle cx="14" cy="14" r="11" stroke="currentColor" stroke-width="2"/>
+                    <path d="M14 7V14L19 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="stat-value">{{ duree_totale_minutes }}</div>
+            <div class="stat-label">Minutes</div>
+        </div>
+
+        {% if oeuvre_plus_visitee %}
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <path d="M14 4L17 13L26 14L19 20L21 29L14 24L7 29L9 20L2 14L11 13L14 4Z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="stat-value">{{ oeuvre_plus_visitee.nombre_visites }}</div>
+            <div class="stat-label">Visites (préférée)</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="filters-bar">
+    <div class="container">
+        <form method="get" class="filter-tabs">
+            <button type="submit" name="periode" value="tout" class="filter-tab {% if periode_active == 'tout' %}active{% endif %}">
+                Tout
+            </button>
+            <button type="submit" name="periode" value="jour" class="filter-tab {% if periode_active == 'jour' %}active{% endif %}">
+                Aujourd'hui
+            </button>
+            <button type="submit" name="periode" value="semaine" class="filter-tab {% if periode_active == 'semaine' %}active{% endif %}">
+                Cette semaine
+            </button>
+            <button type="submit" name="periode" value="mois" class="filter-tab {% if periode_active == 'mois' %}active{% endif %}">
+                Ce mois
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- History Section -->
+<div class="history-section">
+    <div class="container">
+        {% if visites %}
+            <div class="history-list">
+                {% for visite in visites %}
+                <article class="history-item">
+                    <div class="history-thumb">
+                        <img src="{{ visite.oeuvre.image_miniature.url }}" alt="{{ visite.oeuvre.titre }}">
+                    </div>
+
+                    <div class="history-content">
+                        <div class="history-category">{{ visite.oeuvre.categorie.nom }}</div>
+                        <h3 class="history-title">
+                            <a href="{% url 'core:detail_oeuvre' visite.oeuvre.slug %}">{{ visite.oeuvre.titre }}</a>
+                        </h3>
+                        <p class="history-artist">
+                            {% if visite.oeuvre.artiste %}
+                                {{ visite.oeuvre.artiste.nom }}
+                            {% else %}
+                                Artiste inconnu
+                            {% endif %}
+                            {% if visite.oeuvre.annee %} • {{ visite.oeuvre.annee }}{% endif %}
+                        </p>
+
+                        <div class="history-meta">
+                            <div class="history-meta-item">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M8 4V8L11 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                {{ visite.date_visite|date:"d/m/Y à H:i" }}
+                            </div>
+                            <div class="history-meta-item">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 2V8L12 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                {{ visite.duree_secondes }} secondes
+                            </div>
+                            <div class="history-meta-item">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M2 8L8 2L14 8M3 8V13C3 13.5523 3.44772 14 4 14H12C12.5523 14 13 13.5523 13 13V8" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                {% if visite.oeuvre.salle %}{{ visite.oeuvre.salle.nom }}{% else %}Salle non définie{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="history-actions">
+                        <a href="{% url 'core:detail_oeuvre' visite.oeuvre.slug %}" class="history-btn btn-primary-outline">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M1 10C1 10 4 4 10 4C16 4 19 10 19 10C19 10 16 16 10 16C4 16 1 10 1 10Z" stroke="currentColor" stroke-width="1.5"/>
+                                <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Revoir
+                        </a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if visites.has_other_pages %}
+                <div class="pagination" style="margin-top: 3rem;">
+                    {% if visites.has_previous %}
+                        <a href="?page={{ visites.previous_page_number }}{% if periode_active %}&periode={{ periode_active }}{% endif %}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+
+                    <span class="pagination-btn active">{{ visites.number }}</span>
+                    <span class="pagination-btn disabled">sur {{ visites.paginator.num_pages }}</span>
+
+                    {% if visites.has_next %}
+                        <a href="?page={{ visites.next_page_number }}{% if periode_active %}&periode={{ periode_active }}{% endif %}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                    <circle cx="60" cy="60" r="50" stroke="currentColor" stroke-width="4"/>
+                    <path d="M60 20V60L85 72" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+                <h3>Aucune visite récente</h3>
+                <p>Commencez à explorer les œuvres pour voir votre historique</p>
+                <a href="{% url 'core:liste_oeuvres' %}" class="btn btn-primary" style="margin-top: 1.5rem;">
+                    Découvrir des œuvres
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

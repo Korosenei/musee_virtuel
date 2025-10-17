@@ -1,0 +1,518 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Commentaires{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.stats-bar {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    padding: 2rem 0;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value.success {
+    color: var(--success-color);
+}
+
+.stat-value.warning {
+    color: var(--warning-color);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.comments-section {
+    padding: 3rem 0;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comment-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.comment-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+}
+
+.comment-header {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background-color: var(--bg-secondary);
+}
+
+.comment-artwork-thumb {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.comment-artwork-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comment-artwork-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.comment-artwork-category {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.comment-artwork-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.comment-artwork-artist {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.comment-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    align-self: center;
+}
+
+.status-approved {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.status-pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.comment-body {
+    padding: 1.5rem;
+}
+
+.comment-content {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.comment-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.comment-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.comment-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.comment-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.btn-view {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.btn-view:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-delete {
+    background-color: transparent;
+    border: 2px solid var(--error-color);
+    color: var(--error-color);
+}
+
+.btn-delete:hover {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state svg {
+    margin: 0 auto 1.5rem;
+    opacity: 0.3;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.filters-bar {
+    background-color: var(--bg-secondary);
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.filter-tab:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.filter-tab.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .comment-header {
+        flex-direction: column;
+    }
+
+    .comment-artwork-thumb {
+        width: 100%;
+        height: 200px;
+    }
+
+    .comment-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .comment-actions {
+        width: 100%;
+    }
+
+    .comment-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Mes Commentaires</h1>
+        <p>Gérez vos avis et commentaires sur les œuvres</p>
+    </div>
+</div>
+
+<div class="comments-section">
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value">{{ commentaires.paginator.count }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value success">{{ nombre_approuves }}</div>
+                <div class="stat-label">Approuvés</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value warning">{{ nombre_en_attente }}</div>
+                <div class="stat-label">En attente</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <form method="get" class="filter-tabs">
+                <button type="submit" name="filtre" value="tous" class="filter-tab {% if not request.GET.filtre or request.GET.filtre == 'tous' %}active{% endif %}">
+                    Tous
+                </button>
+                <button type="submit" name="filtre" value="approuves" class="filter-tab {% if request.GET.filtre == 'approuves' %}active{% endif %}">
+                    Approuvés
+                </button>
+                <button type="submit" name="filtre" value="en_attente" class="filter-tab {% if request.GET.filtre == 'en_attente' %}active{% endif %}">
+                    En attente
+                </button>
+            </form>
+        </div>
+
+        <!-- Comments List -->
+        {% if commentaires %}
+            <div class="comments-list">
+                {% for commentaire in commentaires %}
+                <article class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-artwork-thumb">
+                            <img src="{{ commentaire.oeuvre.image_miniature.url }}" alt="{{ commentaire.oeuvre.titre }}">
+                        </div>
+                        <div class="comment-artwork-info">
+                            <div class="comment-artwork-category">{{ commentaire.oeuvre.categorie.nom }}</div>
+                            <h3 class="comment-artwork-title">
+                                <a href="{% url 'core:detail_oeuvre' commentaire.oeuvre.slug %}">{{ commentaire.oeuvre.titre }}</a>
+                            </h3>
+                            <p class="comment-artwork-artist">
+                                {% if commentaire.oeuvre.artiste %}
+                                    {{ commentaire.oeuvre.artiste.nom }}
+                                {% else %}
+                                    Artiste inconnu
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="comment-status {% if commentaire.est_approuve %}status-approved{% else %}status-pending{% endif %}">
+                            {% if commentaire.est_approuve %}
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Approuvé
+                            {% else %}
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M8 4V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <circle cx="8" cy="11" r="0.5" fill="currentColor"/>
+                                </svg>
+                                En attente
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="comment-body">
+                        <div class="comment-content">
+                            {{ commentaire.contenu|linebreaks }}
+                        </div>
+
+                        <div class="comment-footer">
+                            <div class="comment-meta">
+                                <div class="comment-meta-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M8 4V8L11 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    {{ commentaire.date_creation|date:"d/m/Y à H:i" }}
+                                </div>
+                                {% if commentaire.date_modification != commentaire.date_creation %}
+                                <div class="comment-meta-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M12 3L9 6H5V10H9L12 13V3Z" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    Modifié
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="comment-actions">
+                                <a href="{% url 'core:detail_oeuvre' commentaire.oeuvre.slug %}" class="comment-btn btn-view">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M1 8C1 8 3 3 8 3C13 3 15 8 15 8C15 8 13 13 8 13C3 13 1 8 1 8Z" stroke="currentColor" stroke-width="1.5"/>
+                                        <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                    Voir l'œuvre
+                                </a>
+                                <button class="comment-btn btn-delete" onclick="deleteComment({{ commentaire.id }}, this)">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M2 4H14M5 4V2H11V4M6 7V11M10 7V11M3 4L4 14H12L13 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                    Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if commentaires.has_other_pages %}
+                <div class="pagination" style="margin-top: 3rem;">
+                    {% if commentaires.has_previous %}
+                        <a href="?page={{ commentaires.previous_page_number }}{% if request.GET.filtre %}&filtre={{ request.GET.filtre }}{% endif %}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+
+                    <span class="pagination-btn active">{{ commentaires.number }}</span>
+                    <span class="pagination-btn disabled">sur {{ commentaires.paginator.num_pages }}</span>
+
+                    {% if commentaires.has_next %}
+                        <a href="?page={{ commentaires.next_page_number }}{% if request.GET.filtre %}&filtre={{ request.GET.filtre }}{% endif %}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                    <rect x="20" y="20" width="80" height="80" rx="8" stroke="currentColor" stroke-width="4"/>
+                    <path d="M40 50H80M40 65H70" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+                <h3>Aucun commentaire</h3>
+                <p>Vous n'avez pas encore laissé de commentaire sur les œuvres</p>
+                <a href="{% url 'core:liste_oeuvres' %}" class="btn btn-primary" style="margin-top: 1.5rem;">
+                    Découvrir des œuvres
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function deleteComment(commentId, button) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')) return;
+
+    try {
+        const response = await fetch(`/commentaire/${commentId}/supprimer/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+
+        if (response.ok) {
+            // Animer et supprimer la carte
+            const card = button.closest('.comment-card');
+            card.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                card.remove();
+
+                // Recharger si plus de commentaires
+                if (document.querySelectorAll('.comment-card').length === 0) {
+                    location.reload();
+                }
+            }, 300);
+
+            showNotification('Commentaire supprimé', 'success');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Une erreur est survenue', 'error');
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+<style>
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+</style>
+{% endblock %}

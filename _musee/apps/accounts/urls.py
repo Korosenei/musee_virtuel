@@ -17,6 +17,8 @@ urlpatterns = [
     path('profil/modifier/', views.modifier_profil, name='modifier_profil'),
     path('mes-favoris/', views.mes_favoris, name='mes_favoris'),
     path('mon-historique/', views.mon_historique, name='mon_historique'),
+    path('mes-commentaires/', views.mes_commentaires, name='mes_commentaires'),
+    path('supprimer-compte/', views.supprimer_compte, name='supprimer_compte'),
 
     # Réinitialisation mot de passe
     path('mot-de-passe/reinitialiser/',

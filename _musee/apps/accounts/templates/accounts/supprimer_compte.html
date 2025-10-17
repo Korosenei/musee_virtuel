@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supprimer mon compte{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; padding: 4rem 1.5rem;">
+    <div style="background-color: var(--bg-color); border: 2px solid var(--error-color); border-radius: var(--radius-xl); padding: 3rem; text-align: center;">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" style="margin: 0 auto 2rem;">
+            <circle cx="40" cy="40" r="35" stroke="#ef4444" stroke-width="3"/>
+            <path d="M40 20V45M40 55V60" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+
+        <h1 style="color: var(--error-color); margin-bottom: 1rem;">Supprimer mon compte</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Cette action est <strong>irréversible</strong>. Toutes vos données seront définitivement supprimées.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; margin-bottom: 1rem; font-weight: 500;">
+                    Pour confirmer, tapez <strong>SUPPRIMER</strong> ci-dessous :
+                </label>
+                <input
+                    type="text"
+                    name="confirmation"
+                    class="form-control"
+                    style="text-align: center; font-weight: 600;"
+                    placeholder="SUPPRIMER"
+                    required
+                >
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="{% url 'accounts:profil' %}" class="btn btn-secondary">
+                    Annuler
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    Confirmer la suppression
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

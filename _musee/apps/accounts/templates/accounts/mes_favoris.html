@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Favoris{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    opacity: 0.9;
+}
+
+.filters-bar {
+    background-color: var(--bg-secondary);
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 73px;
+    z-index: 10;
+}
+
+.filters-content {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-color);
+    font-size: 0.875rem;
+}
+
+.favorites-section {
+    padding: 3rem 0;
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.favorite-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    transition: var(--transition);
+}
+
+.favorite-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+}
+
+.favorite-image {
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--bg-tertiary);
+}
+
+.favorite-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.favorite-card:hover .favorite-image img {
+    transform: scale(1.1);
+}
+
+.favorite-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 2;
+}
+
+.favorite-badge:hover {
+    transform: scale(1.1);
+    background-color: var(--error-color);
+}
+
+.favorite-date {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.favorite-content {
+    padding: 1.5rem;
+}
+
+.favorite-category {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.favorite-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.favorite-artist {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.favorite-note {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.star {
+    color: #fbbf24;
+}
+
+.star-empty {
+    color: var(--border-color);
+}
+
+.favorite-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.favorite-link {
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state svg {
+    margin: 0 auto 1.5rem;
+    opacity: 0.3;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stats-bar {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    padding: 2rem 0;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .favorites-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .filters-content {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Mes Favoris</h1>
+        <p class="page-subtitle">{{ favoris.paginator.count }} œuvre{{ favoris.paginator.count|pluralize }} dans votre collection</p>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="filters-bar">
+    <div class="container">
+        <form method="get" class="filters-content">
+            <div class="filter-group">
+                <select name="categorie" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Toutes les catégories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.slug }}" {% if categorie_active == cat.slug %}selected{% endif %}>
+                            {{ cat.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <select name="tri" class="filter-select" onchange="this.form.submit()">
+                    <option value="-date_ajout" {% if tri_actuel == '-date_ajout' %}selected{% endif %}>Plus récents</option>
+                    <option value="date_ajout" {% if tri_actuel == 'date_ajout' %}selected{% endif %}>Plus anciens</option>
+                    <option value="titre" {% if tri_actuel == 'titre' %}selected{% endif %}>Titre (A-Z)</option>
+                    <option value="-titre" {% if tri_actuel == '-titre' %}selected{% endif %}>Titre (Z-A)</option>
+                    <option value="-note" {% if tri_actuel == '-note' %}selected{% endif %}>Meilleure note</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Favorites Section -->
+<div class="favorites-section">
+    <div class="container">
+        {% if favoris %}
+            <!-- Stats -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value">{{ favoris.paginator.count }}</div>
+                    <div class="stat-label">Favoris</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ categories.count }}</div>
+                    <div class="stat-label">Catégories</div>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div class="favorites-grid">
+                {% for favori in favoris %}
+                <article class="favorite-card">
+                    <div class="favorite-image">
+                        <a href="{% url 'core:detail_oeuvre' favori.oeuvre.slug %}">
+                            <img src="{{ favori.oeuvre.image_miniature.url }}" alt="{{ favori.oeuvre.titre }}">
+                        </a>
+                        <button class="favorite-badge" onclick="removeFavorite({{ favori.oeuvre.id }}, this)" title="Retirer des favoris">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3L12 8L17 9L13.5 12.5L14.5 18L10 15L5.5 18L6.5 12.5L3 9L8 8L10 3Z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        <div class="favorite-date">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M7 3V7L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            {{ favori.date_ajout|timesince }}
+                        </div>
+                    </div>
+
+                    <div class="favorite-content">
+                        <div class="favorite-category">{{ favori.oeuvre.categorie.nom }}</div>
+                        <h3 class="favorite-title">
+                            <a href="{% url 'core:detail_oeuvre' favori.oeuvre.slug %}">{{ favori.oeuvre.titre }}</a>
+                        </h3>
+                        <p class="favorite-artist">
+                            {% if favori.oeuvre.artiste %}
+                                {{ favori.oeuvre.artiste.nom }}
+                            {% else %}
+                                Artiste inconnu
+                            {% endif %}
+                            {% if favori.oeuvre.annee %} • {{ favori.oeuvre.annee }}{% endif %}
+                        </p>
+
+                        {% if favori.note %}
+                        <div class="favorite-note">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= favori.note %}
+                                    <svg class="star" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9.5 6L13 6.5L10.5 9L11 12.5L8 10.5L5 12.5L5.5 9L3 6.5L6.5 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="star-empty" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9.5 6L13 6.5L10.5 9L11 12.5L8 10.5L5 12.5L5.5 9L3 6.5L6.5 6L8 2Z" stroke="currentColor" stroke-width="1.5"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="favorite-footer">
+                            <a href="{% url 'core:detail_oeuvre' favori.oeuvre.slug %}" class="favorite-link">
+                                Voir l'œuvre
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if favoris.has_other_pages %}
+                <div class="pagination" style="margin-top: 3rem;">
+                    {% if favoris.has_previous %}
+                        <a href="?page={{ favoris.previous_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if tri_actuel %}&tri={{ tri_actuel }}{% endif %}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+
+                    <span class="pagination-btn active">{{ favoris.number }}</span>
+                    <span class="pagination-btn disabled">sur {{ favoris.paginator.num_pages }}</span>
+
+                    {% if favoris.has_next %}
+                        <a href="?page={{ favoris.next_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if tri_actuel %}&tri={{ tri_actuel }}{% endif %}" class="pagination-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                    <path d="M60 20L70 50L100 55L80 75L85 105L60 90L35 105L40 75L20 55L50 50L60 20Z" stroke="currentColor" stroke-width="4"/>
+                </svg>
+                <h3>Aucun favori</h3>
+                <p>Commencez à ajouter des œuvres à votre collection de favoris</p>
+                <a href="{% url 'core:liste_oeuvres' %}" class="btn btn-primary" style="margin-top: 1.5rem;">
+                    Découvrir des œuvres
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function removeFavorite(oeuvreId, button) {
+    if (!confirm('Retirer cette œuvre de vos favoris ?')) return;
+
+    try {
+        const response = await fetch(`/oeuvre/${oeuvreId}/retirer-favori/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+
+        if (response.ok) {
+            // Animer et supprimer la carte
+            const card = button.closest('.favorite-card');
+            card.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                card.remove();
+
+                // Recharger si plus de favoris
+                if (document.querySelectorAll('.favorite-card').length === 0) {
+                    location.reload();
+                }
+            }, 300);
+
+            showNotification('Retiré de vos favoris', 'success');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Une erreur est survenue', 'error');
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+<style>
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+</style>
+{% endblock %}
